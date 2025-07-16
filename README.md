@@ -1,0 +1,2 @@
+# SL_pydealerclientLight
+輕量化pydealerclient，將所有不必要的部分都去除，進行部分程式碼優化

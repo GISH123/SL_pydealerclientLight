@@ -1,0 +1,11 @@
+.idea/
+__pycache__/
+audit_images/
+inference_graph/
+log/
+csv/
+dist/*
+build/
+!dist/*.zip
+predict_images/
+temp_folder_for_big_pic/

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<config>
+  <videolist>
+	<video
+		vid="BJ21_UK"
+		gametype="BJ21"
+		stream="rtmp://10.146.11.92:1935/B004/ipc"
+		width="1920"
+		height="1080"
+		position_file="models/uk_6_cards_annotations.xml"
+		engine_api_url="http://127.0.0.1:5000/countsPredict"   
+	/>
+  </videolist>
+</config>

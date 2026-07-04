@@ -3,10 +3,17 @@
 import os
 import datetime as d
 import threading, time
+import traceback
 
 class PyLogger(object):
+    LEVEL_DEBUG = 10
+    LEVEL_INFO = 20
+    LEVEL_WARNING = 30
+    LEVEL_ERROR = 40
+
     def __init__(self, dir):
         self.dir = dir
+        self.level = self.LEVEL_INFO
         if not os.path.exists(dir):
             os.mkdir(dir)
 
@@ -50,10 +57,14 @@ class PyLogger(object):
                 self.file.close()
 
             self.filename = newfile
-            self.file = open(self.filename, 'a+')
+            self.file = open(self.filename, 'a+', encoding='utf-8', errors='replace')
 
         if not self.file.closed and self.file.writable():
-            self.file.write(message)
+            try:
+                self.file.write(message)
+            except UnicodeEncodeError:
+                safe_msg = message.encode("utf-8", "replace").decode("utf-8")
+                self.file.write(safe_msg)
             self.file.flush()
 
     def run(self):
@@ -73,6 +84,20 @@ class PyLogger(object):
         str = '%s [%s][%s] %s' % (curTime, level, threadid, message)
         return str
 
+    def set_level(self, level_name):
+        level_map = {
+            'DEBUG': self.LEVEL_DEBUG,
+            'INFO': self.LEVEL_INFO,
+            'WARNING': self.LEVEL_WARNING,
+            'WARN': self.LEVEL_WARNING,
+            'ERROR': self.LEVEL_ERROR,
+            'ERR': self.LEVEL_ERROR,
+        }
+        self.level = level_map.get(str(level_name).upper(), self.LEVEL_INFO)
+
+    def _should_log(self, level_value):
+        return level_value >= self.level
+
     def post(self, message):
         '''
         将数据添加至队列
@@ -85,28 +110,44 @@ class PyLogger(object):
         #self.lock.release()
 
     def info(self, message):
+        if not self._should_log(self.LEVEL_INFO):
+            return
         str = self.fmt_str('INFO', message)
         print(str)
         str += '\n'
         self.post(str)
 
     def debug(self, message):
+        if not self._should_log(self.LEVEL_DEBUG):
+            return
         str = self.fmt_str('DEBUG', message)
         print(str)
         str += '\n'
         self.post(str)
 
     def warning(self, message):
+        if not self._should_log(self.LEVEL_WARNING):
+            return
         str = self.fmt_str('WARNING', message)
         print(str)
         str += '\n'
         self.post(str)
 
     def error(self, message):
+        if not self._should_log(self.LEVEL_ERROR):
+            return
         str = self.fmt_str('ERR', message)
         print(str)
         str += '\n'
         self.post(str)
+
+    def exception(self, message: str = 'Unhandled exception'):
+        """Log an exception with full traceback to BOTH console and .log.
+
+        Call this inside an except block.
+        """
+        tb = traceback.format_exc()
+        self.error(f"{message}\n{tb}")
 
 log = PyLogger('./log')
 
@@ -121,6 +162,9 @@ def warning(message):
 
 def error(message):
     log.error(message)
+
+def exception(message: str = 'Unhandled exception'):
+    log.exception(message)
 
 def stop():
     log.stop()

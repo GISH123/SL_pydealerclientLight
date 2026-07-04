@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<config>
+    <common vid="PHBAC_old_selfstream" freq="5" onelabel="1" detecttimes="3" 
+    saveimagescore="0.85" redispatch_reset_cooldown_s="1.0" 
+    live_stall_timeout_s="10.0" live_reopen_cooldown_s="3.0" />
+    <dealer id="1001" host="127.0.0.1" port="2331" />
+    <ftp host="FTP_HOST" port="21" password="FTP_PASSWORD" user="FTP_USER" />
+    <save folder="./_round_end_imgs" autoUpload="1" />
+    <savePredictImage folder="./predict_images" enable="1" />
+    <bacPreprocess resize_enable="1" resize_min_w="320" resize_min_h="320" resize_target_w="320" resize_target_h="320" />
+    <http port="1234" https_port="1235" />
+</config>
+

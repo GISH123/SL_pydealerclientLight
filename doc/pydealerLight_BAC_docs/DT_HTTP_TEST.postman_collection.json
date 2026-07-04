@@ -1,0 +1,421 @@
+{
+  "info": {
+    "_postman_id": "099b1e8d-7721-4eec-b11d-ded4fb0c1bde",
+    "name": "BAC_HTTP_TEST_current_params",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "POST start_predict",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/start_predict?gmcode={{gmcode}}&gmstate=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "start_predict"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST dispatch_index 1",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 0,\n  \"index\": 1\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST dispatch_index 2",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 0,\n  \"index\": 2\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST dispatch_index 3",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 0,\n  \"index\": 3\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "3"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST save_result",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 0\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/save_result?gmcode={{gmcode}}&gmstate=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "save_result"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "POST stop_predict",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"gmcode\": \"{{gmcode}}\",\n  \"gmstate\": 0\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/stop_predict?gmcode={{gmcode}}&gmstate=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "stop_predict"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET start_predict",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/start_predict?gmcode={{gmcode}}&gmstate=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "start_predict"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET dispatch_index 1",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=1",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "1"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET dispatch_index 2",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=2",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "2"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET dispatch_index 3",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/dispatch_index?gmcode={{gmcode}}&gmstate=0&index=3",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "dispatch_index"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            },
+            {
+              "key": "index",
+              "value": "3"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET save_result",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/save_result?gmcode={{gmcode}}&gmstate=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "save_result"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "GET stop_predict",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/stop_predict?gmcode={{gmcode}}&gmstate=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "stop_predict"
+          ],
+          "query": [
+            {
+              "key": "gmcode",
+              "value": "{{gmcode}}"
+            },
+            {
+              "key": "gmstate",
+              "value": "0"
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:1234"
+    },
+    {
+      "key": "gmcode",
+      "value": "BAC_HTTP_TEST_001"
+    }
+  ]
+}

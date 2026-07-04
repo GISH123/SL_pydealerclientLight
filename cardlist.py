@@ -84,9 +84,9 @@ class Cardlist_box(object):
         # 這也是參考舊版pydealerclient bestcardex的寫法 看起來比較簡潔也能做到同樣的結果.
 
         for (cardVal, cardList) in self.indexcardmap.items():
-            logger.info(f'indexcardmap(m_uMap) key={cardVal}, value (a vector of cardlists) len={len(cardList)}')
+            logger.debug(f'indexcardmap(m_uMap) key={cardVal}, value (a vector of cardlists) len={len(cardList)}')
         for (cardVal, a_card) in cardValMap.items():
-            logger.info(f'cardValMap(mymap) key={cardVal}, value (cardinfo->cardvalue): {a_card.dealer_classid}')
+            logger.debug(f'cardValMap(mymap) key={cardVal}, value (cardinfo to cardvalue): {a_card.dealer_classid}')
 
         return cardValMap[index]
 

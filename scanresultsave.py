@@ -1,183 +1,241 @@
-#encoding=utf-8
+# encoding=utf-8
+from __future__ import annotations
 
-import threading
-import time
-import pylogger as logger
-import csvtool as csvtooler
-from twisted.internet.task import LoopingCall
-from config import cfg
-from datamanager import DataMgrInstance
+import csv
+import json
+import os
+import re
 from datetime import datetime
-from cardmsg import ScanResult
-class ScanResultManager(object):
-	def __init__(self):
-		'''
-		初始化
-		'''
-		self.gmcode = ''
-		self.gmlastcode = ''
-		self.predictFlag = False
-		self.lock = threading.Lock()
-		#扫描牌结果  aleck
-		self.scanmapcard = dict()
-		#保存每一张牌的csv
-		self.csvmap = {}
-		#保存最后结果的csv
-		self.csvResutmap = {}
-		#self.thread.start()
-		#self._stop_event = threading.Event()
-		self.tickTimer = LoopingCall(self.onTick)
-		self.tickTimer.start(0.2, False)
-		self.lashCheckTimestamp = 0
-		self.detecttimes = cfg.detecttimes
-		self.curDate = datetime.now().strftime('%Y-%m-%d')
-		self.gmCount = 0
 
-	def onRefresh(self, timestamp):
-		if timestamp - self.lashCheckTimestamp >= 1:
-			self.lashCheckTimestamp = timestamp
+import pylogger as logger
+from csvtool import tocsv, LEGACY_HEADER
 
-	#def onSaveCsv(self, timestamp):
-		#if timestamp - self.lashCheckTimestamp >= 1:
-			#self.lashCheckTimestamp = timestamp
-
-	def onTick(self):
-		self.onRefresh(int(time.time() * 1000))
-		#self.onSaveCsv(int(time.time() * 5000))
-
-	#======================================================================================================================================#
-
-	def saveScanResult(self, gmcode, index, cardVal):
-		self.saveScanResultNolock(gmcode, index, cardVal)
-
-	def saveScanResultNolock(self, gmcode, index, cardVal):
-		self.gmcode = gmcode
-		logger.info('datamanager saveScanResult gmcode=%s, index=%d, cardVal=%d' % (gmcode, index, cardVal))
-		self.scanmapcard[index] = cardVal
+BALL3_HEADER = [
+    "round_id",
+    "end_time",
+    "region_A",
+    "region_J",
+    "region_Q",
+    "region_K",
+    "region_9",
+    "region_10",
+    "model_prediction_log",
+]
 
 
-	#======================================================================================================================================#
-
-	def SaveFinalResult(self, gmcode):
-		curDate = datetime.now().strftime('%Y-%m-%d')
-		if curDate == self.curDate:
-			self.gmCount += 1
-		else:
-			self.curDate = curDate
-			self.gmCount = 0
-		logger.info('gmSaveFinalResult, gmcode=%s, len(scanmap)=%d, gmCount=%d' % (gmcode, len(self.scanmapcard), self.gmCount))
-		# self.savetocsv()
-		self.savetocsvfinaresult()
-		self.clearCardMap(gmcode)
-		DataMgrInstance().notify_ImageSaver()
-	
-	# 20241115 用不到，只用savetocsvfinaresult
-	# def savetocsv(self):
-	# 	self.lock.acquire()
-	# 	#这里存csv数据,因为此时更保险，扫描值和预测值都存在
-	# 	messagelist = []
-
-	# 	# 遍历字典的项
-	# 	if self.gmcode in self.csvmap.keys():
-	# 		csvlistm = self.csvmap[self.gmcode]
-	# 		logger.info(f"scanresultsave.py savetocsv(), csvlistm={csvlistm}")
-	# 		# 如果字典里元素列表个数>1
-	# 		for csvlist in csvlistm:
-	# 			for (index,cardVal) in self.scanmapcard.items():
-	# 				if csvlist[2] == index:
-	# 					csvlist.insert(3, cardVal)
-	# 			messagelist.append(csvlist)
-
-	# 	if len(messagelist) > 0:
-	# 		csvtooler.tocsv(messagelist, False)
-	# 		logger.info(f"scanresultsave.py savetocsv(), csvtooler.tocsv, messagelist={messagelist}")
-	# 	self.lock.release()
-
-	def savetocsvfinaresult(self):
-		self.lock.acquire()
-		#这里存csv数据,因为此时更保险，扫描值和预测值都存在
-		messagelist = []
-		# 遍历字典的项
-		if self.gmcode in self.csvResutmap.keys():
-			csvlistm = self.csvResutmap[self.gmcode]
-			logger.info('scanresultsave.py savetocsvfinaresult(), gmcode=%s,len(csvlistm)=%d'% (self.gmcode, len(csvlistm)))
-			logger.info(f"csvlistm:  {csvlistm}")
-			for csvlist in csvlistm:
-				# for (index,cardVal) in self.scanmapcard.items():
-				# 	#logger.info('savetocsvfinaresult_csvlistm gmcode=%s ,prdict_index = %d, predic_val=%d' %(self.gmcode,csvlist[1],csvlist[2]))
-				# 	if csvlist[1] == index:
-				# 		csvlist.insert(2, cardVal)
-						# logger.info('savetocsvfinaresult gmcode=%s, scan_index = %d, prdict_index = %d, scan_cardVal = %d, predic_val=%d' % (self.gmcode, index, csvlist[1], csvlist[2], csvlist[3]))
-				messagelist.append(csvlist)
-		if len(messagelist) > 0:
-			logger.info("scanresultsave.py savetocsvfinaresult(), csvtooler.tocsv to save csvfile.")
-			csvtooler.tocsv(messagelist, True)
-		self.lock.release()
-
-	#======================================================================================================================================#
-
-	def clearCardMap(self, gmcode):
-		logger.info('clearCarMap, gmcode=%s' % (gmcode))
-		self.lock.acquire()
-		if len(self.csvmap) > 0:
-			self.csvmap.clear()
-		if len(self.csvResutmap) > 0:
-			self.csvResutmap.clear()
-		if len(self.scanmapcard) > 0:
-			self.scanmapcard.clear()
-		self.lock.release()
-
-	#======================================================================================================================================#
-
-	def saveFinaDeclareResult(self, gmcode, resultlist):
-		self.lock.acquire()
-		self.saveFinaDeclareResultNoLock(gmcode, resultlist)
-		self.lock.release()
-	def saveFinaDeclareResultNoLock(self, gmcode, resultlist):
-		# 這邊將當前卡牌框格預測的最後結果儲存到messagelist裡面，主要是為了最後寫入到csv用
-		strgmcode = self._toString(str(gmcode, encoding='utf-8'))
-		messagelist = []
-		
-		# resultlist contains dictionaries of card groups
-		for result_dict in resultlist:
-			# For each group in sorted order (group_0, group_1, etc)
-			for group_key in sorted(result_dict.keys()):
-				group_idx = int(group_key.split('_')[1])  # Extract index from "group_X"
-				cards = result_dict[group_key]
-				
-				# For each card tuple (value, score) in this group
-				for card_val, score in cards:
-					message = []
-					message.append(strgmcode)           # gmcode
-					message.append(group_idx)           # index = group_index
-					message.append(card_val)            # dealer_classid = card number
-					message.append(card_val)            # predict_classid = card number
-					message.append(score)               # score from detection
-					message.append(card_val)            # card_point = card number
-					message.append(0)                   # endid placeholder
-					messagelist.append(message)
-					
-					logger.info(f'saveFinaDeclareResultNoLock building message: gmcode={strgmcode}, '
-							  f'group_idx={group_idx}, card_val={card_val}, score={score}')
-
-		# Store in csvResutmap
-		if len(messagelist) > 0:
-			if gmcode in self.csvResutmap.keys():
-				self.csvResutmap[gmcode].extend(messagelist)
-				logger.info(f'saveFinaDeclareResultNoLock, gmcode in csvResutMaps, extended with {len(messagelist)} messages')
-			else:
-				self.csvResutmap[gmcode] = messagelist
-				logger.info(f'saveFinaDeclareResultNoLock, gmcode NOT in csvResutMaps, added {len(messagelist)} messages')
-
-	#======================================================================================================================================#
-
-	def _toString(self, data):
-		return ''.join([c for c in data if c != '\000'])
-
-dataMgr = ScanResultManager()
-
-def ScanRMgrInstance():
-	return dataMgr
+_BALL3_ROUND_RE = re.compile(r"^(Ball3_\d{8}(?:[_-]\d+)?)(?:[_-]\d+)*$")
 
 
+def _decode_gmcode(gmcode) -> str:
+    if isinstance(gmcode, (tuple, list)):
+        if not gmcode:
+            return ""
+        gmcode = gmcode[0]
+    if isinstance(gmcode, (bytes, bytearray)):
+        return gmcode.decode("utf-8", errors="ignore").strip("\x00")
+    return str(gmcode).strip("\x00")
 
+
+def _ball3_round_id(gm: str) -> str:
+    gm = (gm or "").replace("\x00", "").strip()
+    m = _BALL3_ROUND_RE.match(gm)
+    if m:
+        s = m.group(1)
+        return "Ball3_" + s[6:]
+    return gm
+
+
+def _ball3_to_region_label(v):
+    if isinstance(v, str):
+        s = v.strip().upper()
+        if s in ("A", "J", "Q", "K", "9", "10"):
+            return s
+        if s.isdigit():
+            try:
+                return _ball3_to_region_label(int(s))
+            except Exception:
+                return None
+        return None
+    if isinstance(v, (int, float)):
+        n = int(v)
+        return {1: "A", 9: "9", 10: "10", 11: "J", 12: "Q", 13: "K"}.get(n)
+    return None
+
+
+def _extract_ball3_regions_from_groups(groups_dict: dict):
+    if not isinstance(groups_dict, dict):
+        return None
+    regions = []
+    for gname in sorted(groups_dict.keys()):
+        items = groups_dict.get(gname) or []
+        if not items:
+            return None
+        first = items[0]
+        if not isinstance(first, (tuple, list)) or len(first) < 1:
+            return None
+        r = _ball3_to_region_label(first[0])
+        if r is None:
+            return None
+        regions.append(r)
+    return regions if len(regions) == 3 else None
+
+
+def _regions_to_counts(regions):
+    counts = {"A": 0, "J": 0, "Q": 0, "K": 0, "9": 0, "10": 0}
+    for r in regions:
+        if r in counts:
+            counts[r] += 1
+    return counts
+
+
+class ScanResultManager:
+    def __init__(self):
+        self.session_ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        self.csv_root = os.path.join(os.getcwd(), "csv")
+        self.date_folder = datetime.now().strftime("%Y-%m-%d")
+        self.csv_dir = os.path.join(self.csv_root, self.date_folder)
+        os.makedirs(self.csv_dir, exist_ok=True)
+
+        self.ball3_csv_path = None
+        self.legacy_session_csv_path = None
+
+        self.ball3_latest_regions_by_gmcode = {}
+        self.ball3_predlog_by_gmcode = {}
+
+        self._legacy_scan_rows_by_gmcode = {}
+        self._legacy_final_rows_by_gmcode = {}
+        self._legacy_final_saved_gmcodes = set()
+
+    def _ensure_ball3_csv_ready(self):
+        if not self.ball3_csv_path:
+            self.ball3_csv_path = os.path.join(self.csv_dir, f"{self.session_ts}.csv")
+        if not os.path.exists(self.ball3_csv_path) or os.path.getsize(self.ball3_csv_path) == 0:
+            with open(self.ball3_csv_path, 'w', newline='', encoding='utf-8') as f:
+                csv.writer(f).writerow(BALL3_HEADER)
+
+    def _ensure_legacy_session_csv_ready(self):
+        if not self.legacy_session_csv_path:
+            self.legacy_session_csv_path = os.path.join(self.csv_dir, f"{self.session_ts}.csv")
+        if not os.path.exists(self.legacy_session_csv_path) or os.path.getsize(self.legacy_session_csv_path) == 0:
+            with open(self.legacy_session_csv_path, 'w', newline='', encoding='utf-8') as f:
+                csv.writer(f).writerow(LEGACY_HEADER)
+
+    def _append_legacy_session_rows(self, rows):
+        if not rows:
+            return
+        self._ensure_legacy_session_csv_ready()
+        with open(self.legacy_session_csv_path, 'a', newline='', encoding='utf-8') as f:
+            w = csv.writer(f)
+            w.writerows(rows)
+            f.flush()
+
+    def update_ball3_predlog(self, gmcode, api: dict):
+        try:
+            gm = _ball3_round_id(_decode_gmcode(gmcode))
+            lst = self.ball3_predlog_by_gmcode.setdefault(gm, [])
+            item = {
+                'ts': datetime.now().strftime('%H:%M:%S.%f')[:-3],
+                'Cost_time': api.get('Cost_time'),
+                'Counts': api.get('Counts'),
+                'group_text': api.get('group_text'),
+                'nClass': api.get('nClass'),
+                'nScore': api.get('nScore'),
+            }
+            lst.append(item)
+            if len(lst) > 300:
+                del lst[:50]
+        except Exception as e:
+            logger.error(f'update_ball3_predlog failed: {e}')
+
+    def saveScanResult(self, gmcode, index: int, cardVal: int):
+        gm = _decode_gmcode(gmcode)
+        row = [gm, index, 0, 0, 1.0, cardVal, 0]
+        self._legacy_scan_rows_by_gmcode.setdefault(gm, []).append(row)
+
+    def saveFinaDeclareResult(self, gmcode, resultlist):
+        gm = _decode_gmcode(gmcode)
+        row_map = self._legacy_final_rows_by_gmcode.setdefault(gm, {})
+        for res in resultlist:
+            row_map[int(res.index)] = [
+                gm,
+                int(res.index),
+                int(res.dealer_classid),
+                int(res.predict_classid),
+                float(res.score),
+                int(res.card_point),
+                0,
+            ]
+        if row_map:
+            self._legacy_final_saved_gmcodes.discard(gm)
+            logger.info(f'saveFinaDeclareResult: cached {len(row_map)} BAC final rows for gmcode={gm}')
+
+    def saveFinaDeclareResultNoLock(self, gmcode, resultlist):
+        self.saveFinaDeclareResult(gmcode, resultlist)
+
+    def HasPendingFinalResult(self, gmcode):
+        gm = _decode_gmcode(gmcode)
+        if gm in self._legacy_final_saved_gmcodes:
+            return False
+        return bool(self._legacy_final_rows_by_gmcode.get(gm))
+
+    def SaveFinalResult(self, gmcode):
+        gm = _decode_gmcode(gmcode)
+        rows_map = self._legacy_final_rows_by_gmcode.get(gm, {})
+        rows = [rows_map[k] for k in sorted(rows_map.keys())] if rows_map else []
+        if not rows:
+            logger.warning(f'SaveFinalResult: no cached BAC final rows for gmcode={gm}, fallback to scan rows')
+            rows = self._legacy_scan_rows_by_gmcode.get(gm, [])
+        if not rows:
+            logger.warning(f'SaveFinalResult: nothing to write for gmcode={gm}')
+            return
+        tocsv(rows, isFinalResult=True)
+        self._append_legacy_session_rows(rows)
+        self._legacy_final_saved_gmcodes.add(gm)
+        logger.info(f'SaveFinalResult: wrote {len(rows)} final rows for gmcode={gm}')
+        self.clearCardMap(gmcode)
+
+    def clearCardMap(self, gmcode):
+        gm = _decode_gmcode(gmcode)
+        self._legacy_scan_rows_by_gmcode.pop(gm, None)
+        self._legacy_final_rows_by_gmcode.pop(gm, None)
+        self.ball3_latest_regions_by_gmcode.pop(gm, None)
+        self.ball3_predlog_by_gmcode.pop(gm, None)
+        logger.info(f'clearCardMap: cleared caches for gmcode={gm}')
+
+    def update_ball3_latest_from_groups(self, gmcode, groups_dict: dict) -> None:
+        gm = _ball3_round_id(_decode_gmcode(gmcode))
+        regions = _extract_ball3_regions_from_groups(groups_dict)
+        if regions is not None:
+            self.ball3_latest_regions_by_gmcode[gm] = regions
+
+    def save_ball3_final_csv(self, gmcode) -> bool:
+        self._ensure_ball3_csv_ready()
+        gm_raw = _decode_gmcode(gmcode)
+        gm = _ball3_round_id(gm_raw)
+        regions = self.ball3_latest_regions_by_gmcode.get(gm)
+        if not regions:
+            logger.warning(f'save_ball3_final_csv: no latest regions for gmcode={gm} (raw={gm_raw})')
+            return False
+        counts = _regions_to_counts(regions)
+        end_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        predlog = self.ball3_predlog_by_gmcode.get(gm, [])
+        last_pred = predlog[-1] if predlog else None
+        predlog_json = json.dumps(last_pred, ensure_ascii=False) if last_pred is not None else ''
+        row = [gm, end_time, counts['A'], counts['J'], counts['Q'], counts['K'], counts['9'], counts['10'], predlog_json]
+        with open(self.ball3_csv_path, 'a', newline='', encoding='utf-8') as f:
+            csv.writer(f).writerow(row)
+            f.flush()
+        self.ball3_latest_regions_by_gmcode.pop(gm, None)
+        self.ball3_predlog_by_gmcode.pop(gm, None)
+        logger.info(f'[BALL3] appended CSV row -> {self.ball3_csv_path} gmcode={gm} regions={regions}')
+        return True
+
+
+_mgr = None
+
+
+def ScanRMgrInstance() -> ScanResultManager:
+    global _mgr
+    if _mgr is None:
+        _mgr = ScanResultManager()
+    return _mgr

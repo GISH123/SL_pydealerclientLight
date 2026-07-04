@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<config>
+  <videolist>
+	<video
+		vid="BJ21_UK"
+		gametype="BJ21"
+		stream="rtmp://STREAM_HOST/app/stream"
+		width="1920"
+		height="1080"
+		position_file="models/uk_6_cards_annotations.xml"
+		engine_api_url="http://MODEL_API_HOST:5000/countsPredict"
+	/>
+	<video vid="DT_bac" gametype="DT"  
+	stream="./models/test_30m.mp4" position_file="./models/test30m_bigger.xml" width="1920" height="1080"
+	engine_api_url="http://MODEL_API_HOST:5002/countsPredict"
+	/>
+	<video
+    vid="BALL3_5min15"
+	gametype="BALL3"
+    stream="./models/ball3_5min15.mp4"
+	width="1080" height="1920"
+	position_file="models/positions_dummy.xml"
+    engine_api_url="http://127.0.0.1:5000/countsPredict"
+	/>
+	<video
+    vid="BALL3_3min54"
+	gametype="BALL3"
+    stream="./models/ball3_3min54.mp4"
+	width="1080" height="1920"
+	position_file="models/positions_dummy.xml"
+    engine_api_url="http://127.0.0.1:5000/countsPredict"
+	/>
+	<video
+    vid="BALL3_stream"
+	gametype="BALL3"
+    stream="rtmp://STREAM_HOST/app/stream"
+	width="1080" height="1920"
+	position_file="models/positions_dummy.xml"
+    engine_api_url="http://127.0.0.1:5000/countsPredict"
+	/>
+	<video
+    vid="BAC_httpapi"
+	gametype="BAC"
+    stream="rtmp://STREAM_HOST/app/stream"
+	width="3840" height="2160"
+	position_file="models/ph_bac_pretrain_1.xml"
+    engine_api_url="http://127.0.0.1:5000/countsPredict"
+	/>
+	<video
+    vid="DTBAC_httpapi"
+	gametype="BAC"
+    stream="rtmp://STREAM_HOST/app/stream"
+	width="1920" height="1080"
+	position_file="models/DT_livestream_20260406.xml"
+    engine_api_url="http://127.0.0.1:8787/countsPredict"
+	skip_freq_live="5"
+	/>
+	<video
+    vid="DTBAC_httpapi_selfstream"
+	gametype="BAC"
+    stream="rtmp://STREAM_HOST/app/stream"
+	width="1920" height="1080"
+	position_file="models/DT_livestream_20260406.xml"
+    engine_api_url="http://127.0.0.1:8787/countsPredict"
+	skip_freq_live="5"
+	/>
+	<video
+    vid="PHBAC_kkw"
+	gametype="BAC"
+    stream="https://STREAM_HOST/path/video.flv"
+	width="1920" height="1080"
+	position_file="models/kkw6_20260426.xml"
+    engine_api_url="http://127.0.0.1:8787/countsPredict"
+	skip_freq_live="5"
+	/>
+	<video
+    vid="PHBAC_old"
+	gametype="BAC"
+    stream="models/8-24_20241030_091135.mp4"
+	width="3840" height="2160"
+	position_file="models/20260427_test.xml"
+    engine_api_url="http://127.0.0.1:8787/countsPredict"
+	skip_freq_live="5"
+	/>
+	<video
+    vid="PHBAC_old_selfstream"
+	gametype="BAC"
+    stream="rtmp://STREAM_HOST/app/stream"
+	width="3840" height="2160"
+	position_file="models/20260427_test.xml"
+    engine_api_url="http://127.0.0.1:8787/countsPredict"
+	skip_freq_live="5"
+	/>
+  </videolist>
+</config>
+
+
+
+	<!-- engine_api_url="http://127.0.0.1:5000/countsPredict"    -->
+	<!-- engine_api_url="http://MODEL_API_HOST:5002/countsPredict" -->

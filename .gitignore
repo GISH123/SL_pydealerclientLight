@@ -9,3 +9,54 @@ build/
 !dist/*.zip
 predict_images/
 temp_folder_for_big_pic/
+# Runtime/local config
+config.xml
+models/videolist.xml
+videolist.xml
+
+# Generated HTTPS cert/key
+server.key
+server.crt
+*.key
+*.crt
+*.pem
+*.p12
+*.pfx
+
+# Build/runtime outputs
+dist/
+build/
+log/
+logs/
+csv/
+predict_images/
+audit_images/
+temp_folder_for_big_pic/
+__pycache__/
+*.pyc
+
+# Transfer/build artifacts
+*.zip
+*.7z
+*.exe
+*.dll
+*.pyd
+*.so
+*.bundle
+
+# Local IDE
+.idea/
+.vscode/
+
+# Runtime/local config examples rule
+**/videolist.xml
+!**/videolist.example.xml
+
+# Do not track binaries
+*.exe
+*.dll
+*.pyd
+*.so
+*.zip
+*.7z
+*.bundle

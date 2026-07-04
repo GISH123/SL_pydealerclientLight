@@ -1,0 +1,27 @@
+<?xml version="1.0.0" encoding="utf-8"?>
+<annotation>
+	<size>
+		<width>1920</width>
+		<height>1080</height>
+		<tilt_angle>0</tilt_angle>
+	</size>
+	<gametype>6</gametype>
+	<object>
+		<name>card_1</name>
+		<bndbox>
+			<xmin>411</xmin>
+			<xmax>784</xmax>
+			<ymin>81</ymin>
+			<ymax>516</ymax>
+		</bndbox>
+	</object>
+	<object>
+		<name>card_2</name>
+		<bndbox>
+			<xmin>1110</xmin>
+			<xmax>1510</xmax>
+			<ymin>78</ymin>
+			<ymax>533</ymax>
+		</bndbox>
+	</object>
+</annotation>

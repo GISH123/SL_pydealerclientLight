@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mock Dealer App - DT/BAC Control 用户手册（简体中文版）</title>
+<style>
+  :root{
+    --accent:#1f4bd8;
+    --text:#222;
+    --muted:#666;
+    --bg:#f7f9fc;
+    --line:#d9e0ef;
+    --callout:#eef4ff;
+    --warn:#fff4e5;
+    --ok:#eef9f0;
+  }
+  body{
+    margin:0;
+    font-family: "Microsoft YaHei UI","Segoe UI",Arial,sans-serif;
+    color:var(--text);
+    background:var(--bg);
+    line-height:1.65;
+  }
+  .page{
+    max-width:980px;
+    margin:24px auto;
+    background:#fff;
+    border:1px solid var(--line);
+    box-shadow:0 10px 24px rgba(0,0,0,.06);
+  }
+  .hero{
+    padding:32px 40px 20px;
+    border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#f8fbff 0%,#ffffff 100%);
+  }
+  h1{
+    margin:0 0 8px;
+    font-size:30px;
+    color:var(--accent);
+  }
+  .sub{
+    color:var(--muted);
+    font-size:15px;
+  }
+  .content{
+    padding:28px 40px 40px;
+  }
+  h2{
+    margin:28px 0 12px;
+    font-size:22px;
+    color:#163aa3;
+    border-left:5px solid var(--accent);
+    padding-left:10px;
+  }
+  h3{
+    margin:20px 0 8px;
+    font-size:18px;
+    color:#2b3f7d;
+  }
+  p{ margin:10px 0; }
+  ul,ol{ margin:10px 0 10px 24px; }
+  li{ margin:6px 0; }
+  .callout{
+    margin:16px 0;
+    padding:14px 16px;
+    border:1px solid #cfe0ff;
+    background:var(--callout);
+    border-radius:8px;
+  }
+  .warn{
+    background:var(--warn);
+    border-color:#f3d19c;
+  }
+  .ok{
+    background:var(--ok);
+    border-color:#bfe3c8;
+  }
+  .key{
+    font-weight:700;
+    color:#0d2f96;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    margin:14px 0 18px;
+    font-size:15px;
+  }
+  th,td{
+    border:1px solid var(--line);
+    padding:10px 12px;
+    vertical-align:top;
+  }
+  th{
+    background:#f1f5ff;
+    text-align:left;
+    color:#1d357f;
+  }
+  code{
+    background:#f2f4f8;
+    padding:2px 6px;
+    border-radius:4px;
+    font-family:Consolas, monospace;
+    font-size:90%;
+  }
+  .footer{
+    padding:18px 40px 28px;
+    color:var(--muted);
+    font-size:13px;
+    border-top:1px solid var(--line);
+  }
+  @media print{
+    body{ background:#fff; }
+    .page{ margin:0; border:none; box-shadow:none; max-width:none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="hero">
+    <h1>Mock Dealer App - DT/BAC Control 用户手册</h1>
+    <div class="sub">简体中文版 · 浏览器可直接打开阅读 · 适用于当前最终版 Mock Dealer App 与对应 pydealerLight 控制流程</div>
+  </div>
+
+  <div class="content">
+    <h2>1. 文档目的</h2>
+    <p>本文用于说明 <span class="key">Mock Dealer App 的 DT / BAC 控制界面</span> 如何使用，尤其是：</p>
+    <ul>
+      <li><span class="key">DT（3 slots）</span> 与 <span class="key">BAC Classic（6 slots）</span> 的区别</li>
+      <li><span class="key">Auto Dispatch</span> 与 <span class="key">Dispatch All (burst)</span> 的实际工作方式</li>
+      <li>测试时应该按哪些按钮、按什么顺序按、以及每个按钮的用途</li>
+    </ul>
+
+    <h2>2. 模式说明</h2>
+    <table>
+      <tr>
+        <th style="width:26%;">模式</th>
+        <th style="width:18%;">格数</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td><strong>DT (3 slots)</strong></td>
+        <td>3</td>
+        <td>用于 DragonTiger / DT 类三格流程。界面中会显示 3 个 index，常见顺序为 <code>1 → 3 → 2</code>。</td>
+      </tr>
+      <tr>
+        <td><strong>BAC Classic (6 slots)</strong></td>
+        <td>6</td>
+        <td>用于经典 BAC 六格流程。界面中会显示 6 个 index。</td>
+      </tr>
+    </table>
+
+    <h2>3. 启动后的界面含义</h2>
+    <p>主界面顶部蓝色文字会显示当前状态，例如：</p>
+    <p><code>DT dealer connecting | control=HTTP | TCP listen 0.0.0.0:2331 | HTTP http://127.0.0.1:1234</code></p>
+    <p>含义如下：</p>
+    <ul>
+      <li><span class="key">DT dealer connecting</span>：当前是 DT 三格模式，程序正在等待 pydealerLight / detector 端进入可工作状态。</li>
+      <li><span class="key">control=HTTP</span>：当前主要控制路径使用 HTTP。</li>
+      <li><span class="key">TCP listen ...</span>：本地 TCP 监听地址。</li>
+      <li><span class="key">HTTP ...</span>：当前配置的 HTTP 控制地址。</li>
+    </ul>
+
+    <h2>4. 主按钮用途</h2>
+    <table>
+      <tr>
+        <th style="width:28%;">按钮</th>
+        <th>用途</th>
+      </tr>
+      <tr>
+        <td><strong>Start New Round && Prediction</strong></td>
+        <td>开始新一局，并向 pydealerLight 发出 start predict。通常这是一局流程的起点。</td>
+      </tr>
+      <tr>
+        <td><strong>Save Result</strong></td>
+        <td>发送保存结果指令。当前工作流中，通常先保存结果，再停止预测。</td>
+      </tr>
+      <tr>
+        <td><strong>Stop Prediction</strong></td>
+        <td>发送 stop predict，结束当前这局的预测流程。</td>
+      </tr>
+      <tr>
+        <td><strong>Dispatch 1 / Dispatch 2 / ...</strong></td>
+        <td>手动发出单个 index 的 dispatch。适合人工逐格测试。</td>
+      </tr>
+      <tr>
+        <td><strong>DT_Auto Dispatch (3 slots)</strong> / <strong>BAC_Auto Dispatch</strong></td>
+        <td>按预设顺序自动 dispatch。更适合标准测试流程。</td>
+      </tr>
+      <tr>
+        <td><strong>Dispatch All (burst)</strong></td>
+        <td>按当前顺序快速连续发送多个 dispatch。更适合 burst/manual 测试，而不是“逐格等待完成”的标准流程。</td>
+      </tr>
+      <tr>
+        <td><strong>Apply</strong></td>
+        <td>应用当前 order 设置。</td>
+      </tr>
+    </table>
+
+    <h2>5. Dispatch All (burst) 与 Auto Dispatch 的核心区别</h2>
+    <div class="callout warn">
+      <strong>最重要的区别：</strong><br>
+      <span class="key">Dispatch All (burst) 不会等待当前 index 完成后再发送下一个 dispatch index。</span><br>
+      <span class="key">Auto Dispatch 会等待当前 index 完成后，才继续发送下一个 dispatch index。</span>
+    </div>
+
+    <h3>5.1 Dispatch All (burst)</h3>
+    <p>Dispatch All (burst) 会按照当前 order，快速连续把多个 dispatch 发出去。例如在 DT 模式下，order 为 <code>1 → 3 → 2</code> 时，burst 会在很短时间内连续发送：</p>
+    <p><code>dispatch 1 → dispatch 3 → dispatch 2</code></p>
+    <p>它的特点是：</p>
+    <ul>
+      <li><span class="key">不会等待</span>前一个 index 完成。</li>
+      <li>更适合验证 pydealerLight 是否能同时接收和处理多个 active index。</li>
+      <li>更像“快速连续触发”或“并发压力测试”。</li>
+      <li>不建议把它理解成标准业务流程中的“逐格自动完成”。</li>
+    </ul>
+
+    <h3>5.2 Auto Dispatch</h3>
+    <p>Auto Dispatch 是标准、直观、最推荐的测试方式。它会按 order 顺序逐格发送 dispatch，并且：</p>
+    <ul>
+      <li>先发送当前 index</li>
+      <li><span class="key">等待该 index 完成并返回有效结果</span></li>
+      <li>再发送下一个 index</li>
+      <li>所有目标 index 都完成后，再按设定的 Save gap / Stop gap / Gap 执行后续动作</li>
+    </ul>
+
+    <div class="callout ok">
+      <strong>简单记法：</strong><br>
+      <strong>burst</strong> = 快速连发，不等当前格完成。<br>
+      <strong>auto</strong> = 逐格推进，等当前格完成后再发下一格。
+    </div>
+
+    <h2>6. 推荐测试方式</h2>
+    <h3>6.1 简单演示</h3>
+    <ol>
+      <li>启动 Mock Dealer App</li>
+      <li>选择 <strong>DT (3 slots)</strong> 或 <strong>BAC Classic (6 slots)</strong></li>
+      <li>确认 control mode（通常为 HTTP）</li>
+      <li>等待 pydealerLight 进入可连接状态</li>
+      <li>点击 <strong>Auto Dispatch</strong></li>
+      <li>观察界面中的卡位、日志、以及 Save / Stop 的排程</li>
+    </ol>
+    <p>这是最接近“业务流程”的测试方式，也最方便说明给非开发人员。</p>
+
+    <h3>6.2 如果要验证 pydealerLight 的并发 dispatch 行为</h3>
+    <ol>
+      <li>设置 order，例如 DT 常用 <code>1 3 2</code></li>
+      <li>确认 <strong>Dispatch All every (s)</strong> 的数值</li>
+      <li>点击 <strong>Dispatch All (burst)</strong></li>
+      <li>观察 pydealerLight 是否同时接受多个 active index，并分别返回结果</li>
+    </ol>
+    <p>这种方式主要用于技术验证，不建议当成最直观的操作演示。</p>
+
+    <h2>7. 建议的 DT 测试流程</h2>
+    <ol>
+      <li>模式选择：<strong>DT (3 slots)</strong></li>
+      <li>order：通常使用 <code>1 3 2</code></li>
+      <li>点击 <strong>DT_Auto Dispatch (3 slots)</strong></li>
+      <li>等待流程自动完成</li>
+      <li>如需人工控制，则先 点击 <strong>Start New Round && Prediction</strong>，再<strong>Dispatch index 1~3</strong>，再<strong>Save Result</strong>，再 <strong>Stop Prediction</strong></li>
+    </ol>
+
+    <h2>8. 时间参数说明</h2>
+    <table>
+      <tr>
+        <th style="width:26%;">参数</th>
+        <th>说明</th>
+      </tr>
+      <tr>
+        <td><strong>Dispatch All every (s)</strong></td>
+        <td>burst 模式中，相邻 dispatch 之间的发送间隔。</td>
+      </tr>
+      <tr>
+        <td><strong>Save gap (s)</strong></td>
+        <td>全部目标 index 完成后，延迟多久发送 Save Result。</td>
+      </tr>
+      <tr>
+        <td><strong>Stop gap (s)</strong></td>
+        <td>全部目标 index 完成后，延迟多久发送 Stop Prediction。</td>
+      </tr>
+      <tr>
+        <td><strong>Gap (s)</strong></td>
+        <td>当前 round 结束后，到下一 round 开始前的等待时间。</td>
+      </tr>
+    </table>
+
+    <h2>9. 日志怎么看</h2>
+    <p>界面下方日志区会显示当前动作与顺序。可重点关注：</p>
+    <ul>
+      <li><code>[SEND] Dispatch ... idx=...</code>：已经发送 dispatch</li>
+      <li><code>detected idx=... -> advance to next</code>：当前格已完成，自动进入下一格</li>
+      <li><code>Completed order=...</code>：本轮目标 index 已全部完成</li>
+      <li><code>SaveResult now ...</code>：发送保存结果</li>
+      <li><code>StopPredict now ...</code>：发送停止预测</li>
+    </ul>
+
+    <h2>10. 常见误解</h2>
+    <div class="callout warn">
+      <strong>误解 1：</strong>Dispatch All (burst) 和 Auto Dispatch 是一样的。<br>
+      <strong>不是。</strong>burst 不等待当前 index 完成；auto 会等待当前 index 完成后再继续。
+    </div>
+
+    <div class="callout warn">
+      <strong>误解 2：</strong>Dispatch All 比 Auto 更“标准”。<br>
+      <strong>不是。</strong>标准、最容易讲清楚的流程通常是 Auto Dispatch；burst 更适合技术验证。
+    </div>
+
+    <div class="callout warn">
+      <strong>误解 3：</strong>Save Result 和 Stop Prediction 先后顺序无所谓。<br>
+      <strong>当前工作流建议：</strong>先 Save Result，再 Stop Prediction。
+    </div>
+
+    <h2>11. 如果只需要一句话解释：</h2>
+    <div class="callout">
+      <p><span class="key">Auto Dispatch</span> 是“按顺序逐格测试，当前格完成后再发下一格”；<br>
+      <span class="key">Dispatch All (burst)</span> 是“快速连续把多个格的 dispatch 发出去，不等当前格完成”。</p>
+    </div>
+  </div>
+
+  <div class="footer">
+    文件类型：HTML（浏览器可直接打开）<br>
+    建议用途：公司电脑、无 Word / 无 PDF 阅读器环境、现场演示、测试说明
+  </div>
+</div>
+</body>
+</html>

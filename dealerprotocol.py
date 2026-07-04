@@ -43,7 +43,17 @@ class DealerProtocol(protocol.Protocol):
 
     def sendData(self, data):
         #logger.info('sendData, len=%d' % (len(data)))
-        self.transport.write(data)
+        try:
+            self.transport.write(data)
+        except Exception:
+            # If the peer has already reset the connection, make sure we:
+            # 1) log the traceback into .log
+            # 2) force Twisted to go through connectionLost so upper layer can reconnect
+            logger.exception('sendData failed (forcing reconnect)')
+            try:
+                self.transport.loseConnection()
+            except Exception:
+                pass
 
     def dataReceived(self, data):
         self.cache += data
@@ -72,7 +82,16 @@ class DealerProtocol(protocol.Protocol):
             logger.info('ping....')
             pkt = cardmsg.PK_KeepAlive()
             data = pkt.pack()
-            self.transport.write(data)
+            try:
+                self.transport.write(data)
+            except Exception:
+                # This is the common case when remote side force-closes the socket.
+                # Without handling, you only see it on console and reconnect may never happen.
+                logger.exception('ping failed (forcing reconnect)')
+                try:
+                    self.transport.loseConnection()
+                except Exception:
+                    pass
 
     def onRefresh(self, timestamp):
         if timestamp - self.lashCheckTimestamp > CHECK_PEER_TICK:

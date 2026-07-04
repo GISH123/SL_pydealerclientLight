@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="1440" viewBox="0 0 1720 1440">
+  <defs>
+    <marker id="arrowGray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#6c757d"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#198754"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#0d6efd"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#fd7e14"/>
+    </marker>
+    <style>
+      .title { font: 700 28px Arial, sans-serif; fill:#111; }
+      .subtitle { font: 15px Arial, sans-serif; fill:#555; }
+      .laneTitleBlue { font: 700 20px Arial, sans-serif; fill:#0d6efd; }
+      .laneTitleGreen { font: 700 22px Arial, sans-serif; fill:#198754; }
+      .laneTitlePurple { font: 700 22px Arial, sans-serif; fill:#6f42c1; }
+      .laneTitleOrange { font: 700 21px Arial, sans-serif; fill:#fd7e14; }
+      .laneSub { font: 15px Arial, sans-serif; fill:#666; }
+      .section { font: 700 22px Arial, sans-serif; fill:#0f5132; }
+      .msg { font: 16px Arial, sans-serif; fill:#111; }
+      .msgSub { font: 13px Arial, sans-serif; fill:#555; }
+      .noteTitle { font: 700 16px Arial, sans-serif; fill:#084298; }
+      .noteText { font: 14px Arial, sans-serif; fill:#1b1b1b; }
+      .altTitle { font: 16px Arial, sans-serif; fill:#111; }
+      .altSub { font: 13px Arial, sans-serif; fill:#555; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1720" height="1340" fill="#ffffff"/>
+
+  <text x="860" y="42" text-anchor="middle" class="title">DT/BAC Mock Dealer / pydealerLight / Model Engine — Start / Dispatch / Save / Stop Sequence UML</text>
+  <text x="860" y="70" text-anchor="middle" class="subtitle">Gray Arrow = dealer control, Green Arrow = model request / internal processing, Blue Arrow = result update, Orange Arrow = CSV / image output</text>
+
+  <rect x="60" y="110" width="390" height="84" rx="12" fill="#f0f7ff" stroke="#86b7fe" stroke-width="1.6"/>
+  <text x="255" y="145" text-anchor="middle" class="laneTitleBlue">Mock Dealer (Launcher / GUI)</text>
+  <text x="255" y="170" text-anchor="middle" class="laneSub">mode select + start / dispatch / save / stop</text>
+
+  <rect x="500" y="110" width="470" height="84" rx="12" fill="#eefaf1" stroke="#74c69d" stroke-width="1.6"/>
+  <text x="735" y="145" text-anchor="middle" class="laneTitleGreen">pydealerLight</text>
+  <text x="735" y="170" text-anchor="middle" class="laneSub">HTTP service + ROI crop + DT/BAC result cache / formatting</text>
+
+  <rect x="1020" y="110" width="400" height="84" rx="12" fill="#f3efff" stroke="#b197fc" stroke-width="1.6"/>
+  <text x="1220" y="145" text-anchor="middle" class="laneTitlePurple">Model Engine</text>
+  <text x="1220" y="170" text-anchor="middle" class="laneSub">single-card ROI prediction / JSON results</text>
+
+  <rect x="1470" y="110" width="190" height="84" rx="12" fill="#fff4e6" stroke="#ffb36b" stroke-width="1.6"/>
+  <text x="1565" y="145" text-anchor="middle" class="laneTitleOrange">Output</text>
+  <text x="1565" y="170" text-anchor="middle" class="laneSub">CSV / log / images</text>
+
+  <line x1="255" y1="194" x2="255" y2="1410" stroke="#c7d0d9" stroke-width="1.6" stroke-dasharray="8 9"/>
+  <line x1="735" y1="194" x2="735" y2="1410" stroke="#c7d0d9" stroke-width="1.6" stroke-dasharray="8 9"/>
+  <line x1="1220" y1="194" x2="1220" y2="1410" stroke="#c7d0d9" stroke-width="1.6" stroke-dasharray="8 9"/>
+  <line x1="1565" y1="194" x2="1565" y2="1410" stroke="#c7d0d9" stroke-width="1.6" stroke-dasharray="8 9"/>
+
+  <rect x="36" y="248" width="1578" height="1140" rx="12" fill="none" stroke="#adb5bd" stroke-width="1.6" stroke-dasharray="10 8"/>
+  <text x="76" y="275" class="altTitle">alt [HTTP control + TCP result return]</text>
+  <text x="76" y="298" class="altSub">Dealer may choose TCP / HTTP / Both, but current recommended demo path is HTTP control + TCP result return. Compared with BALL3, BAC adds dispatch_index and save_result.</text>
+
+  <rect x="25" y="336" width="1610" height="42" rx="8" fill="#dff1e7" stroke="#badbcc"/>
+  <text x="45" y="364" class="section">1) Round preparation</text>
+
+  <rect x="100" y="414" width="310" height="44" rx="8" fill="#eef4ff" stroke="#bfd3ff"/>
+  <text x="255" y="442" text-anchor="middle" class="msg">Select mode / game profile + click Start</text>
+
+  <line x1="255" y1="500" x2="735" y2="500" stroke="#6c757d" stroke-width="2.6" marker-end="url(#arrowGray)"/>
+  <text x="495" y="484" text-anchor="middle" class="msg">Generate gmcode / round id</text>
+  <text x="495" y="518" text-anchor="middle" class="msgSub">Example: BAC0410_1 (14-byte protocol field when packed)</text>
+
+  <rect x="1110" y="404" width="510" height="92" rx="10" fill="#fff8e6" stroke="#ffd27d" stroke-width="1.4"/>
+  <text x="1130" y="432" class="noteTitle" style="fill:#9a6700;">Current-config note</text>
+  <text x="1130" y="460" class="noteText">• Uploaded config.xml currently points to vid=DTBAC_httpapi.</text>
+  <text x="1130" y="486" class="noteText">• That profile uses a 3-ROI position file; full BAC Classic 6-slot demo needs a matching 6-slot</text>
+
+  <rect x="25" y="560" width="1610" height="42" rx="8" fill="#dff1e7" stroke="#badbcc"/>
+  <text x="45" y="588" class="section">2) Start Predict command flow</text>
+
+  <line x1="255" y1="652" x2="735" y2="652" stroke="#6c757d" stroke-width="2.8" marker-end="url(#arrowGray)"/>
+  <text x="495" y="636" text-anchor="middle" class="msg">TCP/HTTP start_predict request</text>
+  <text x="495" y="669" text-anchor="middle" class="msgSub">gmcode + gmstate=2 + table + deviceId + streamId</text>
+
+  <rect x="560" y="700" width="350" height="60" rx="10" fill="#eefaf1" stroke="#95d5b2"/>
+  <text x="735" y="728" text-anchor="middle" class="msg">pydealerLight enters BAC predict state</text>
+  <text x="735" y="752" text-anchor="middle" class="msgSub">store current gmcode / predictFlag=true</text>
+
+  <rect x="25" y="820" width="1610" height="42" rx="8" fill="#dff1e7" stroke="#badbcc"/>
+  <text x="45" y="848" class="section">3) Dispatch / scan loop</text>
+
+  <line x1="255" y1="906" x2="735" y2="906" stroke="#6c757d" stroke-width="2.8" marker-end="url(#arrowGray)"/>
+  <text x="495" y="890" text-anchor="middle" class="msg">dispatch_index request</text>
+  <text x="495" y="920" text-anchor="middle" class="msgSub">index = 1..6 (or Dispatch All sequence)</text>
+
+  <line x1="735" y1="982" x2="1220" y2="982" stroke="#198754" stroke-width="2.8" marker-end="url(#arrowGreen)"/>
+  <text x="977" y="966" text-anchor="middle" class="msg">Crop active ROI and POST PNG to engine</text>
+  <text x="977" y="999" text-anchor="middle" class="msgSub">engine_api_url / countsPredict</text>
+
+  <line x1="1220" y1="1056" x2="735" y2="1056" stroke="#198754" stroke-width="2.4" marker-end="url(#arrowGreen)"/>
+  <text x="977" y="1040" text-anchor="middle" class="msg">Return per-index prediction JSON</text>
+  <text x="977" y="1071" text-anchor="middle" class="msgSub">nClass / nScore / onebox / group_text</text>
+
+  <rect x="560" y="1088" width="355" height="84" rx="10" fill="#eefaf1" stroke="#95d5b2"/>
+  <text x="737" y="1117" text-anchor="middle" class="msg">DataManager accumulates per-index results</text>
+  <text x="737" y="1144" text-anchor="middle" class="msgSub">dispatch only after detecttimes is reached</text>
+  <text x="737" y="1168" text-anchor="middle" class="msgSub">low-score ROI is ignored by saveimagescore threshold</text>
+
+  <line x1="735" y1="1200" x2="255" y2="1200" stroke="#0d6efd" stroke-width="2.8" marker-end="url(#arrowBlue)"/>
+  <text x="495" y="1184" text-anchor="middle" class="msg">Return accepted result to dealer UI</text>
+  <text x="495" y="1216" text-anchor="middle" class="msgSub">idx + dealer_classid + score</text>
+
+  <rect x="25" y="1248" width="1610" height="42" rx="8" fill="#dff1e7" stroke="#badbcc"/>
+  <text x="45" y="1276" class="section">4) Save / Stop command flow</text>
+
+  <line x1="255" y1="1314" x2="735" y2="1314" stroke="#6c757d" stroke-width="2.8" marker-end="url(#arrowGray)"/>
+  <text x="495" y="1298" text-anchor="middle" class="msg">save_result request</text>
+  <text x="495" y="1328" text-anchor="middle" class="msgSub">preferred final CSV flush point for BAC</text>
+
+  <line x1="735" y1="1314" x2="1565" y2="1314" stroke="#fd7e14" stroke-width="2.8" marker-end="url(#arrowOrange)"/>
+  <text x="1150" y="1298" text-anchor="middle" class="msg">Write final BAC rows to CSV</text>
+  <text x="1150" y="1328" text-anchor="middle" class="msgSub">finalresult_YYYYMMDD.csv + session csv</text>
+
+  <line x1="255" y1="1370" x2="735" y2="1370" stroke="#6c757d" stroke-width="2.8" marker-end="url(#arrowGray)"/>
+  <text x="495" y="1354" text-anchor="middle" class="msg">stop_predict request</text>
+  <text x="495" y="1384" text-anchor="middle" class="msgSub">same gmcode + gmstate=0</text>
+
+  <line x1="735" y1="1370" x2="1565" y2="1370" stroke="#fd7e14" stroke-width="2.8" marker-end="url(#arrowOrange)"/>
+  <text x="1150" y="1354" text-anchor="middle" class="msg">Fallback flush + evidence output on STOP</text>
+  <text x="1150" y="1384" text-anchor="middle" class="msgSub">save pending result if needed / clear predictFlag / keep full image &amp; log evidence</text>
+</svg>

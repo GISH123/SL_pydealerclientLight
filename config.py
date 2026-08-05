@@ -99,12 +99,18 @@ class AppConfig(object):
         if node_common.hasAttribute('live_reopen_cooldown_s'):
             self.live_reopen_cooldown_s = float(node_common.getAttribute('live_reopen_cooldown_s'))
 
-        # BAC ROI preprocess before posting to external model API.
-        # Optional config.xml node:
-        # <bacPreprocess resize_enable="1" resize_min_w="320" resize_min_h="320" resize_target_w="320" resize_target_h="320" />
-        # Behavior: when enabled, if cropped ROI width/height is smaller than min_w/min_h,
-        # keep-ratio resize the posted image. The output image is not padded and may be non-square.
+        # BAC ROI preprocess before posting to the external model API.
+        #
+        # resize_mode options:
+        # - keep_ratio_no_pad:
+        #   Legacy behavior. Resize only when the ROI is below resize_min W:H.
+        #   The output keeps its original aspect ratio and can have a variable W:H.
+        # - keep_ratio_center_pad:
+        #   Crop Tool-compatible behavior. Every BAC ROI is resized with its aspect
+        #   ratio preserved, then center-padded with cv2.BORDER_REPLICATE so the
+        #   final model input is exactly resize_target W:H.
         self.bac_preprocess_resize_enable = True
+        self.bac_preprocess_resize_mode = 'keep_ratio_no_pad'
         self.bac_preprocess_resize_min_w = 320
         self.bac_preprocess_resize_min_h = 320
         self.bac_preprocess_resize_target_w = 320
@@ -117,6 +123,16 @@ class AppConfig(object):
                     self.bac_preprocess_resize_enable = str(node_bac.getAttribute('resize_enable')).strip() in ('1', 'true', 'True')
                 elif node_bac.hasAttribute('resize_enabled'):
                     self.bac_preprocess_resize_enable = str(node_bac.getAttribute('resize_enabled')).strip() in ('1', 'true', 'True')
+
+                if node_bac.hasAttribute('resize_mode'):
+                    resize_mode = str(node_bac.getAttribute('resize_mode')).strip().lower()
+                    valid_modes = ('keep_ratio_no_pad', 'keep_ratio_center_pad')
+                    if resize_mode not in valid_modes:
+                        raise ValueError(
+                            f"invalid bacPreprocess resize_mode={resize_mode!r}; "
+                            f"expected one of {valid_modes}"
+                        )
+                    self.bac_preprocess_resize_mode = resize_mode
 
                 if node_bac.hasAttribute('resize_min_w'):
                     self.bac_preprocess_resize_min_w = int(node_bac.getAttribute('resize_min_w'))
@@ -148,8 +164,9 @@ class AppConfig(object):
         
         self.save_auto_upload = node_save.getAttribute('autoUpload')
 
-        # Optional: small per-round predict images (BALL3)
+        # Optional: small per-round predict images.
         self.savePredictImage_enable = False
+        self.savePredictImage_save_original_crop = False
         self.savePredictImage_folder = './predict_images'
         try:
             nodes_pred = root.getElementsByTagName('savePredictImage')
@@ -158,6 +175,15 @@ class AppConfig(object):
                 self.savePredictImage_folder = node_pred.getAttribute('folder') or self.savePredictImage_folder
                 en = node_pred.getAttribute('enable') or node_pred.getAttribute('enabled')
                 self.savePredictImage_enable = str(en).strip() in ('1', 'true', 'True')
+
+                original_crop_en = (
+                    node_pred.getAttribute('save_original_crop')
+                    or node_pred.getAttribute('original_crop')
+                )
+                self.savePredictImage_save_original_crop = (
+                    str(original_crop_en).strip() in ('1', 'true', 'True')
+                )
+
                 if self.savePredictImage_enable:
                     os.makedirs(self.savePredictImage_folder, exist_ok=True)
         except Exception as e:
@@ -167,17 +193,21 @@ class AppConfig(object):
         logger.info('read_base_config success, vid=%s, freq=%d, onelabel=%d, detecttimes=%d,saveimagescore=%.4f, id=%s, host=%s, port=%d' %
                     (self.vid, self.freq, self.onelabel, self.detecttimes, self.saveimagescore, self.dealer_id, self.dealer_host, self.dealer_port))
         logger.info(
-            "save_folder={},save_auto_upload={}, savePredictImage_enable={}, savePredictImage_folder={}, "
+            "save_folder={},save_auto_upload={}, savePredictImage_enable={}, "
+            "savePredictImage_folder={}, savePredictImage_save_original_crop={}, "
             "redispatch_reset_cooldown_s={}, live_stall_timeout_s={}, live_reopen_cooldown_s={}, "
-            "bac_preprocess_resize_enable={}, bac_preprocess_resize_min_wh=({},{}), bac_preprocess_resize_target_wh=({},{})".format(
+            "bac_preprocess_resize_enable={}, bac_preprocess_resize_mode={}, "
+            "bac_preprocess_resize_min_wh=({},{}), bac_preprocess_resize_target_wh=({},{})".format(
                 self.save_folder,
                 self.save_auto_upload,
                 getattr(self, "savePredictImage_enable", False),
                 getattr(self, "savePredictImage_folder", ""),
+                getattr(self, "savePredictImage_save_original_crop", False),
                 getattr(self, "redispatch_reset_cooldown_s", 1.0),
                 getattr(self, "live_stall_timeout_s", 10.0),
                 getattr(self, "live_reopen_cooldown_s", 3.0),
                 getattr(self, "bac_preprocess_resize_enable", True),
+                getattr(self, "bac_preprocess_resize_mode", "keep_ratio_no_pad"),
                 getattr(self, "bac_preprocess_resize_min_w", 320),
                 getattr(self, "bac_preprocess_resize_min_h", 320),
                 getattr(self, "bac_preprocess_resize_target_w", 320),

@@ -6,8 +6,20 @@
     <dealer id="1001" host="127.0.0.1" port="2331" />
     <ftp host="FTP_HOST" port="21" password="FTP_PASSWORD" user="FTP_USER" />
     <save folder="./_round_end_imgs" autoUpload="1" />
-    <savePredictImage folder="./predict_images" enable="1" />
-    <bacPreprocess resize_enable="1" resize_min_w="320" resize_min_h="320" resize_target_w="320" resize_target_h="320" />
+    <!-- save_original_crop defaults to 0 when omitted. -->
+    <savePredictImage folder="./predict_images" enable="1" save_original_crop="0" />
+
+    <!--
+      Crop Tool-compatible BAC preprocessing:
+      keep ratio -> resize -> centered BORDER_REPLICATE padding.
+      The final model input is always exact W150:H100.
+      resize_min_w/h are retained for legacy compatibility but are ignored by
+      keep_ratio_center_pad mode because every BAC ROI is preprocessed.
+    -->
+    <bacPreprocess resize_enable="1"
+        resize_mode="keep_ratio_center_pad"
+        resize_min_w="150" resize_min_h="100"
+        resize_target_w="150" resize_target_h="100" />
     <http port="1234" https_port="1235" />
 </config>
 

@@ -291,6 +291,11 @@ class VideoManager(object):
         self.root = None
         # 20241025 toggle save predictions
         self.save_predictions = save_predictions
+        # Raw ROI copies under predict_images/<date>/original_crop.
+        # Default is OFF when save_original_crop is omitted from config.xml.
+        self.save_original_crop = bool(
+            getattr(cfg, 'savePredictImage_save_original_crop', False)
+        )
         self.save_full_image = save_full_image
         # 20241029 imageSaver
         self.auditDir = savedir
@@ -312,14 +317,19 @@ class VideoManager(object):
         # BAC ROI preprocess before posting to external model API.
         # Configurable from config.xml <bacPreprocess ... />.
         self.bac_preprocess_resize_enable = bool(getattr(cfg, 'bac_preprocess_resize_enable', True))
+        self.bac_preprocess_resize_mode = str(
+            getattr(cfg, 'bac_preprocess_resize_mode', 'keep_ratio_no_pad')
+        ).strip().lower()
         self.bac_preprocess_resize_min_w = max(1, int(getattr(cfg, 'bac_preprocess_resize_min_w', 320)))
         self.bac_preprocess_resize_min_h = max(1, int(getattr(cfg, 'bac_preprocess_resize_min_h', 320)))
         self.bac_preprocess_resize_target_w = max(1, int(getattr(cfg, 'bac_preprocess_resize_target_w', 320)))
         self.bac_preprocess_resize_target_h = max(1, int(getattr(cfg, 'bac_preprocess_resize_target_h', 320)))
         logger.info(
             f"[BAC_PREPROCESS_CONFIG] resize_enable={self.bac_preprocess_resize_enable}, "
+            f"resize_mode={self.bac_preprocess_resize_mode}, "
             f"resize_min_wh=({self.bac_preprocess_resize_min_w},{self.bac_preprocess_resize_min_h}), "
-            f"resize_target_wh=({self.bac_preprocess_resize_target_w},{self.bac_preprocess_resize_target_h})"
+            f"resize_target_wh=({self.bac_preprocess_resize_target_w},{self.bac_preprocess_resize_target_h}), "
+            f"save_original_crop={self.save_original_crop}"
         )
 
         # Reuse HTTP connection to reduce latency per request
@@ -520,7 +530,7 @@ class VideoManager(object):
             base_dir = self.predict_savedir or './predict_images'
             day_dir  = d.datetime.now().strftime('%Y-%m-%d')
             out_dir  = os.path.join(base_dir, day_dir)
-            save_type = 'engine_input_keep_ratio_no_pad'
+            save_type = 'engine_input'
             if subfolder:
                 out_dir = os.path.join(out_dir, str(subfolder))
                 save_type = str(subfolder)
@@ -1123,6 +1133,87 @@ class VideoManager(object):
         }
         return resized, meta
     
+    def _bac_keep_ratio_resize_center_pad(self, roi, target_w, target_h):
+        """
+        Match SL_crop_tool Step 2 preprocessing:
+
+        1. Preserve the original aspect ratio.
+        2. Resize the image to fit inside target W:H.
+        3. Center-pad the missing area using cv2.BORDER_REPLICATE.
+        4. Return an image whose final size is exactly target W:H.
+
+        Smaller ROIs are enlarged and larger ROIs are reduced. No part of the
+        original ROI is cropped, and the image is not stretched.
+        """
+        if roi is None or roi.size == 0:
+            raise RuntimeError(
+                'empty roi passed to _bac_keep_ratio_resize_center_pad'
+            )
+
+        roi_h, roi_w = roi.shape[:2]
+        target_w = max(1, int(target_w))
+        target_h = max(1, int(target_h))
+
+        scale = min(
+            float(target_w) / float(max(1, roi_w)),
+            float(target_h) / float(max(1, roi_h)),
+        )
+
+        resized_w = max(
+            1,
+            min(target_w, int(round(float(roi_w) * scale))),
+        )
+        resized_h = max(
+            1,
+            min(target_h, int(round(float(roi_h) * scale))),
+        )
+
+        interpolation = cv2.INTER_CUBIC if scale >= 1.0 else cv2.INTER_AREA
+        resized = cv2.resize(
+            roi,
+            (resized_w, resized_h),
+            interpolation=interpolation,
+        )
+
+        total_pad_x = target_w - resized_w
+        total_pad_y = target_h - resized_h
+
+        pad_left = total_pad_x // 2
+        pad_right = total_pad_x - pad_left
+        pad_top = total_pad_y // 2
+        pad_bottom = total_pad_y - pad_top
+
+        padded = cv2.copyMakeBorder(
+            resized,
+            pad_top,
+            pad_bottom,
+            pad_left,
+            pad_right,
+            borderType=cv2.BORDER_REPLICATE,
+        )
+
+        engine_h, engine_w = padded.shape[:2]
+        if engine_w != target_w or engine_h != target_h:
+            raise RuntimeError(
+                f'unexpected BAC padded image W:H={engine_w}:{engine_h}; '
+                f'expected W:H={target_w}:{target_h}'
+            )
+
+        meta = {
+            'mode': 'keep_ratio_center_pad',
+            'scale': float(scale),
+            'original_wh': (int(roi_w), int(roi_h)),
+            'resized_wh': (int(resized_w), int(resized_h)),
+            'engine_wh': (int(engine_w), int(engine_h)),
+            'pad_ltrb': (
+                int(pad_left),
+                int(pad_top),
+                int(pad_right),
+                int(pad_bottom),
+            ),
+        }
+        return padded, meta
+
     def _post_engine(self, payload):
         """POST to inference engine with retry + session re-create.
 
@@ -1663,7 +1754,11 @@ class VideoManager(object):
                         engine_w = max(1, int(engine_w))
                         engine_h = max(1, int(engine_h))
 
-                        if mode in ('keep_ratio_no_pad', 'letterbox_keep_ratio_blackpad'):
+                        if mode in (
+                            'keep_ratio_no_pad',
+                            'keep_ratio_center_pad',
+                            'letterbox_keep_ratio_blackpad',
+                        ):
                             scale = float(engine_roi_shape.get('scale', 1.0) or 1.0)
                             pad_left, pad_top, pad_right, pad_bottom = engine_roi_shape.get('pad_ltrb', (0, 0, 0, 0))
                             pad_left = int(pad_left)
@@ -1769,15 +1864,37 @@ class VideoManager(object):
                     'engine_wh': (int(roi_w), int(roi_h)),
                     'pad_ltrb': (0, 0, 0, 0),
                 }
-                if self.bac_preprocess_resize_enable and (
-                    roi_w < self.bac_preprocess_resize_min_w or roi_h < self.bac_preprocess_resize_min_h
-                ):
-                    resize_applied = True
-                    roi_for_engine, preprocess_meta = self._bac_keep_ratio_resize_no_pad(
-                        roi,
-                        self.bac_preprocess_resize_target_w,
-                        self.bac_preprocess_resize_target_h,
-                    )
+                if self.bac_preprocess_resize_enable:
+                    if self.bac_preprocess_resize_mode == 'keep_ratio_center_pad':
+                        # Crop Tool-compatible mode always preprocesses every BAC ROI.
+                        # The final model input is exact resize_target W:H.
+                        resize_applied = True
+                        roi_for_engine, preprocess_meta = (
+                            self._bac_keep_ratio_resize_center_pad(
+                                roi,
+                                self.bac_preprocess_resize_target_w,
+                                self.bac_preprocess_resize_target_h,
+                            )
+                        )
+                    elif self.bac_preprocess_resize_mode == 'keep_ratio_no_pad':
+                        # Preserve the old min-size trigger for legacy configs.
+                        if (
+                            roi_w < self.bac_preprocess_resize_min_w
+                            or roi_h < self.bac_preprocess_resize_min_h
+                        ):
+                            resize_applied = True
+                            roi_for_engine, preprocess_meta = (
+                                self._bac_keep_ratio_resize_no_pad(
+                                    roi,
+                                    self.bac_preprocess_resize_target_w,
+                                    self.bac_preprocess_resize_target_h,
+                                )
+                            )
+                    else:
+                        raise RuntimeError(
+                            'unsupported BAC resize_mode: '
+                            f'{self.bac_preprocess_resize_mode!r}'
+                        )
 
                 engine_h, engine_w = roi_for_engine.shape[:2]
                 resized_w, resized_h = preprocess_meta.get('resized_wh', (engine_w, engine_h))
@@ -1883,21 +2000,27 @@ class VideoManager(object):
                 except Exception as e:
                     logger.exception(f'_save_predict_patch BAC engine-input idx={pos.index} failed: {e}')
 
-                try:
-                    original_saved_path = self._save_predict_patch(
-                        gmcode_show,
-                        pos.index,
-                        roi,
-                        predict_classid=api_class,
-                        score=score,
-                        subfolder='original_crop'
-                    )
-                except Exception as e:
-                    logger.exception(f'_save_predict_patch BAC original-crop idx={pos.index} failed: {e}')
+                if self.save_original_crop:
+                    try:
+                        original_saved_path = self._save_predict_patch(
+                            gmcode_show,
+                            pos.index,
+                            roi,
+                            predict_classid=api_class,
+                            score=score,
+                            subfolder='original_crop'
+                        )
+                    except Exception as e:
+                        logger.exception(
+                            f'_save_predict_patch BAC original-crop '
+                            f'idx={pos.index} failed: {e}'
+                        )
 
                 logger.info(
-                    f"[BAC_PREDICT_IMAGE_DUAL_SAVE] idx={pos.index}, "
-                    f"engine_saved_path={engine_saved_path}, original_saved_path={original_saved_path}"
+                    f"[BAC_PREDICT_IMAGE_SAVE_RESULT] idx={pos.index}, "
+                    f"engine_saved_path={engine_saved_path}, "
+                    f"save_original_crop={self.save_original_crop}, "
+                    f"original_saved_path={original_saved_path}"
                 )
             except Exception as e:
                 logger.exception(f"process_frame[BAC] idx={getattr(pos, 'index', 'UNK')} failed: {e}")

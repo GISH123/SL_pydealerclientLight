@@ -216,6 +216,13 @@ The BALL3 HTTP service is started in threaded mode during runtime.
 
 ---
 
+## J20 BAC UAT
+
+- [J20 BAC UAT Deployment Operator Guide](doc/J20_UAT/J20_BAC_Deployment_Operator_Guide.md)
+- [J20 BAC UAT Deployment Checklist](doc/J20_UAT/J20_BAC_Deployment_Checklist.md)
+
+---
+
 ## Repository Hygiene
 
 Do not commit local config, secrets, certificates, binaries, or build outputs.

@@ -21,7 +21,7 @@
 
    | 檔案與欄位 | J20 應核對的內容 |
    |---|---|
-   | `config.xml` 的 `common/@vid` | 選定的 J20 UAT 設定檔識別字，與影片清單中的一筆 `video/@vid` 完全相同。**TODO** 確認識別字。 |
+   | `config.xml` 的 `<common>` → `models/videolist.xml` 的 `<video>` | GitHub 版用 `config.xml` 裡 `<common>` 的 `vid`，到 `models/videolist.xml` 找 `vid` 相同的 `<video>` 設定。例如 `<common vid="示意值">` 對應 `<video vid="示意值">`。**TODO** 確認 J20 UAT 版的對應方式與實際 `vid`。 |
    | `models/videolist.xml` 的 `video` | `gametype` 使用 `BAC`。 `stream` 指向 A008。 `width`、`height` 填實測尺寸。 `position_file` 指向新校準的六格 XML，並從程式執行目錄確認路徑可讀。 |
    | 同一筆 `video` 的 `engine_api_url` | 填入 J20 核准的外部辨識模型端點。**TODO** 確認模型版本、內部設定來源及核對方式。 |
    | `config.xml` 的 `dealer`、`http` | Detector 的 TCP 目標須與開發 Mock Dealer 的監聽設定對應。Mock Dealer 的 HTTP 控制目標須與 Detector 的 HTTP 設定對應。**TODO** 確認現場控制模式與連線設定。 |
